@@ -14,6 +14,10 @@ MiningCtrls.controller('MiningCtrl', function($scope, $rootScope, $http) {
 		url : './books.php?url=' + bookUri
 	}
 	
+	$scope.state = {
+		gettingChapter : false
+	};
+	
 	$scope.done = false;
 	
 	$http(req).success(function(res) {
@@ -52,7 +56,9 @@ MiningCtrls.controller('MiningCtrl', function($scope, $rootScope, $http) {
 			
 			$scope.getChapters(book, function() {
 				// get another books
-				$scope.getBook(callback);
+				
+				if (!$scope.state.gettingChapter)
+					$scope.getBook(callback);
 			});
 			$scope.global.books.shift();
 		} else {
@@ -108,13 +114,13 @@ MiningCtrls.controller('MiningCtrl', function($scope, $rootScope, $http) {
 		}
 		var chapter;
 		
+		$scope.state.gettingChapter = true;
 		$http(req).success(function(res) {
 			$scope.global.chapters = res.chapters;
 			
-			chapter = $scope.global.chapters[0];
-			$scope.global.currentChapter = chapter;
+			$scope.state.gettingChapter = false;
 			$scope.global.totalChapter = $scope.global.chapters.length;
-			
+			chapter = $scope.global.chapters[0];
 			$scope.global.chapters.shift();
 			$scope.getVerses(chapter, function() {
 				// all verses get
@@ -122,21 +128,41 @@ MiningCtrls.controller('MiningCtrl', function($scope, $rootScope, $http) {
 				callback();
 			});
 			
-//			chapter = $scope.global.chapters[0];
-//			$scope.global.chapters.shift();
-//			$scope.getVerses(chapter, function() {
-//				// all verses get
-//
-//				callback();
-//			});
-//			
-//			chapter = $scope.global.chapters[0];
-//			$scope.global.chapters.shift();
-//			$scope.getVerses(chapter, function() {
-//				// all verses get
-//
-//				callback();
-//			});
+			chapter = $scope.global.chapters[0];
+			$scope.global.chapters.shift();
+			$scope.getVerses(chapter, function() {
+				// all verses get
+
+				callback();
+			});
+			
+			chapter = $scope.global.chapters[0];
+			$scope.global.chapters.shift();
+			$scope.getVerses(chapter, function() {
+				// all verses get
+
+				callback();
+			});
+			
+			chapter = $scope.global.chapters[0];
+			$scope.global.chapters.shift();
+			$scope.getVerses(chapter, function() {
+				// all verses get
+
+				callback();
+			});
+			
+			chapter = $scope.global.chapters[0];
+			$scope.global.chapters.shift();
+			
+			$scope.global.currentChapter = chapter;
+			
+			
+			$scope.getVerses(chapter, function() {
+				// all verses get
+
+				callback();
+			});
 			
 		}).error(function() {
 			$scope.global.errors.push({
