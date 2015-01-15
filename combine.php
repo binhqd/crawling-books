@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL & E_NOTICE);
+ini_set("display_error", "On");
+
 require("libs/functions.php");
 
 include ('libs/mining.php');
@@ -14,11 +17,9 @@ if (isset($_GET['book'])) {
 }
 
 $bookIndex = unserialize($serialized);
-
 $books = array();
 if (!empty($bookName)) {
 	$bookContents = $script->combineBook($bookName);
-	
 	$books[] = implode("\n", $bookContents);
 } else {
 	$oldTesaments = $bookIndex['oldTesaments'];
@@ -32,6 +33,7 @@ if (!empty($bookName)) {
 		$books[] = implode("\n", $bookContents);
 	}
 
+
 	// This is new Tesaments
 	foreach($newTesaments as $book) {
 		if ($book['text'] == '') continue;
@@ -41,8 +43,9 @@ if (!empty($bookName)) {
 	}
 }
 
+$file = dirname(__FILE__) . "/books/combined.html";
 
-$html = '<html>
+$head = '<html>
 <head>
 <meta name="pb_title" content="Expositor\'s Bible Commentary - OT">
 <meta name="pb_abbrev" content="EPCOT">
@@ -58,16 +61,30 @@ $html = '<html>
 <meta name="pb_synctype" content="verse">
 </head> 
 <body>';
+
+if (!empty($bookName)) {
+	
+$html = $head;
 $html .= implode("\n\n\n", $books);
 $html .= '
 </body>
 </html>
 ';
-
-if (!empty($bookName))
-	echo $html;
-else {
-	file_put_contents("books/combined.html", $html);
+echo $html;
+}
 	
+else {
+	file_put_contents($file, $head);
+	foreach ($books as $bookContent) {
+		file_put_contents($file, $bookContent, FILE_APPEND);
+		file_put_contents($file, "\n\n\n", FILE_APPEND);
+		file_put_contents($file, "\n\n\n", FILE_APPEND);
+	}
+
+	$footer .= '
+</body>
+</html>
+';
+	file_put_contents($file, $footer, FILE_APPEND);
 	echo 'Books combined';
 }

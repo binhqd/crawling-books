@@ -1,0 +1,31 @@
+<!-- $info here -->
+<div ng-show="!!global.currentBook.text">
+	<h3>Crawling book: {{global.currentBook.text}} ({{global.totalBooks - (global.newTesaments.length + global.oldTesaments.length)}}/{{global.totalBooks}})</h3>
+	<div style='color:#0000ff'>Crawling {{global.currentChapter.text}} / {{global.totalChapter}}</div>
+	<hr/>
+</div>
+<div class='clearfix'/>
+<div ng-show='global.errors.length > 0'>
+<h3>Errors:</h3>
+<ul class='error'>
+	<li ng-repeat="error in global.errors">
+		<b>{{error.book.text}}</b> <span ng-if="error.scenario == 'getVerses'">/ {{error.chapter.text}}</span><br/>
+		URL: <a href='{{error.url}}'>{{error.url}}</a>
+	</li>
+</ul>
+</div>
+<div class='clearfix'/>
+<h3>Remaining old Tesaments</h3>
+<div ng-show="global.oldTesaments.length == 0">Loading ... </div>
+<div ng-show="global.oldTesaments.length > 0">
+	<div ng-repeat="item in global.oldTesaments" ng-class="{'col-sm-3' : true}">{{item.text}}</div>
+</div>
+
+<div class='clearfix'/>
+<h3>Remaining new Tesaments</h3>
+<div ng-show="global.newTesaments.length == 0">Loading ... </div>
+<div ng-show="global.newTesaments.length > 0">
+	<div ng-repeat="item in global.newTesaments" ng-class="{'col-sm-3' : true}">{{item.text}}</div>
+</div>
+
+<div class='clearfix'/>

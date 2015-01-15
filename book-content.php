@@ -23,4 +23,6 @@ include ('libs/mining.php');
 $script = new \Mining\MiningComponent ();
 $contentParts = $script->getBookContent($url);
 
-echo json_encode($contentParts);
+//echo json_encode($contentParts);
+
+echo json_encode(array("status" => "OK"));

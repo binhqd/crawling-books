@@ -22,6 +22,8 @@ class MiningComponent {
 		
 	);
 	
+	const OWNER = 541;
+	const GROUP = 538;
 	/**
 	 * This method is used to return directory for cache
 	 * @return string
@@ -29,7 +31,11 @@ class MiningComponent {
 	public static function cacheDir() {
 		$dir = realpath(dirname(__FILE__) . "/../cache");
 		if (!is_dir($dir)) {
-			mkdir($dir, 0755, true);
+			mkdir($dir);
+			chmod($dir, 0777);
+			chown($dir, OWNER);
+			chgrp($dir, GROUP);
+
 		}
 		return $dir;
 	}
@@ -55,6 +61,8 @@ class MiningComponent {
 			$text = $link->plaintext;
 			$href = $link->getAttribute('href');
 			
+			if (empty($text) || empty($href)) continue;
+
 			$data['oldTesaments'][] = array(
 				'text'	=> $text,
 				'href'	=> $href
@@ -63,7 +71,10 @@ class MiningComponent {
 			// create folder
 			$bookFolder = dirname(__FILE__) . "/../books/{$text}";
 			if (!is_dir($bookFolder)) {
-				mkdir($bookFolder, 755, true);
+				mkdir($bookFolder);
+				chmod($bookFolder, 0777);
+				chown($bookFolder, OWNER);
+				chgrp($bookFolder, GROUP);
 			}
 		}
 		
@@ -78,6 +89,15 @@ class MiningComponent {
 				'text'	=> $text,
 				'href'	=> $href
 			);
+
+			// create folder
+			$bookFolder = dirname(__FILE__) . "/../books/{$text}";
+			if (!is_dir($bookFolder)) {
+				mkdir($bookFolder);
+				chmod($bookFolder, 0777);
+				chown($bookFolder, OWNER);
+				chgrp($bookFolder, GROUP);
+			}
 		}
 		
 		// cache book index
@@ -117,7 +137,10 @@ class MiningComponent {
 			// create chapter folders
 			$dir = dirname(__FILE__) . "/../books/{$bookName}/{$text}";
 			if (!is_dir($dir)) {
-				mkdir($dir, 0755, true);
+				mkdir($dir);
+				chmod($dir, 0777);
+				chown($dir, OWNER);
+				chgrp($dir, GROUP);
 			}
 		}
 		
@@ -182,7 +205,36 @@ class MiningComponent {
 		
 	}
 	
-	public function combineBook($bookName) {
+	private static function formatText($string) {
+		$illegalChars = array("", "");
+		
+		$paragraph = strip_tags($string);
+						
+		//$paragraph = str_replace(array("<", ">"), array("&lt;", "&gt;"), $paragraph);
+	
+		$paragraph = preg_replace('/[^\00-\255]+/u', "", $paragraph);
+		$paragraph = htmlentities($paragraph);
+		$paragraph = str_replace("&amp;", "&", $paragraph);
+		$paragraph = str_replace($illegalChars, "", $paragraph);
+		//$paragraph = htmlspecialchars($paragraph, ENT_SUBSTITUTE);
+		//$paragraph = htmlspecialchars($paragraph, ENT_DISALLOWED);
+		
+		$paragraph = iconv("UTF-8","ISO-8859-1//IGNORE",$paragraph);
+		$paragraph = iconv("ISO-8859-1","UTF-8",$paragraph);
+		$paragraph = iconv('UTF-8', 'ASCII//TRANSLIT', $paragraph);
+
+		$paragraph=str_replace("\n\n",  "z000"        ,$paragraph);
+	    $paragraph=str_replace("\n",    "z111"        ,$paragraph);
+	    $paragraph = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $paragraph);
+    /*$paragraph=filter_var($paragraph,FILTER_SANITIZE_SPECIAL_CHARS, FILTER_FLAG_STRIP_LOW);
+    $paragraph=str_replace("z000",  "\n\n"  ,$paragraph);
+    $paragraph=str_replace("z111",  "\n"       ,$paragraph);*/
+		
+// 		$paragraph = recode_string("us..flat", $paragraph);
+		return $paragraph;
+	}
+	
+	public function combineBook($bookName, $chapterNumber = '') {
 		$contents = array();
 		$contents[] = "<h1 pb_toc=\"index\">{$bookName}</h1>";
 		
@@ -197,35 +249,65 @@ class MiningComponent {
 //		if (!isset($BookChapters['chapters'])) dump(array($bookName, $index));
 		$chapters = $BookChapters['chapters'];
 		
-		foreach ($chapters as $chapter) {
-			$chapterNumber = str_replace("Chapter ", "", $chapter['text']);
-			
-			if (!file_exists("{$dir}/{$chapter['text']}/verses.txt"))
-				continue;
-			$verseIndex = file_get_contents("{$dir}/{$chapter['text']}/verses.txt");
-			
-			$unserialize = unserialize($verseIndex);
-			$verses = $unserialize['verses'];
-			
-			foreach ($verses as $verse) {
-				$verseNumber = str_replace("Verse ", "", $verse['text']);
-				$verseNumber = str_replace("Verses ", "", $verseNumber);
-				//<h2 pb_toc="index">1:1</h2>
-// <p><pb_sync type=verse value="Genesis 1:1" display="now" /><b>Gen 1:1</b></p>
+		if (!empty($chapterNumber)) {
+				if (!file_exists("{$dir}/Chapter {$chapterNumber}/verses.txt"))
+					continue;
+
+				$verseIndex = file_get_contents("{$dir}/Chapter {$chapterNumber}/verses.txt");
+
+				$unserialize = unserialize($verseIndex);
+				$verses = $unserialize['verses'];
 				
-				$contents[] = "<h2 pb_toc=\"index\">{$chapterNumber}:{$verseNumber}</h2>";
-				$contents[] = "<p><pb_sync type='verse' value=\"{$bookName} {$chapterNumber}:{$verseNumber}\" display=\"now\" /><b>".substr($bookName, 0, 3)." {$chapterNumber}:{$verseNumber}</b></p>";
+				foreach ($verses as $verse) {
+					$verseNumber = str_replace("Verse ", "", $verse['text']);
+					$verseNumber = str_replace("Verses ", "", $verseNumber);
+					//<h2 pb_toc="index">1:1</h2>
+	// <p><pb_sync type=verse value="Genesis 1:1" display="now" /><b>Gen 1:1</b></p>
+					
+					$contents[] = "<h2 pb_toc=\"index\">{$chapterNumber}:{$verseNumber}</h2>";
+					$contents[] = "<p><pb_sync type='verse' value=\"{$bookName} {$chapterNumber}:{$verseNumber}\" display=\"now\" /><b>".substr($bookName, 0, 3)." {$chapterNumber}:{$verseNumber}</b></p>";
+					
+					// Two blank lines
+					$contents[] = '';
+					$contents[] = '';
+					
+					foreach ($verse['paragraphs'] as $paragraph) {
+						$paragraph = self::formatText($paragraph);
+						$contents[] = "<p>{$paragraph}</p>";
+					}
+				}
+		} else {
+			foreach ($chapters as $chapter) {
+				$chapterNumber = str_replace("Chapter ", "", $chapter['text']);
 				
-				// Two blank lines
-				$contents[] = '';
-				$contents[] = '';
+				if (!file_exists("{$dir}/{$chapter['text']}/verses.txt"))
+					continue;
+				$verseIndex = file_get_contents("{$dir}/{$chapter['text']}/verses.txt");
 				
-				foreach ($verse['paragraphs'] as $paragraph) {
-					$paragraph = strip_tags($paragraph);
-					$contents[] = "<p>{$paragraph}</p>";
+				$unserialize = unserialize($verseIndex);
+				$verses = $unserialize['verses'];
+				
+				foreach ($verses as $verse) {
+					$verseNumber = str_replace("Verse ", "", $verse['text']);
+					$verseNumber = str_replace("Verses ", "", $verseNumber);
+					//<h2 pb_toc="index">1:1</h2>
+	// <p><pb_sync type=verse value="Genesis 1:1" display="now" /><b>Gen 1:1</b></p>
+					
+					$contents[] = "<h2 pb_toc=\"index\">{$chapterNumber}:{$verseNumber}</h2>";
+					$contents[] = "<p><pb_sync type='verse' value=\"{$bookName} {$chapterNumber}:{$verseNumber}\" display=\"now\" /><b>".substr($bookName, 0, 3)." {$chapterNumber}:{$verseNumber}</b></p>";
+					
+					// Two blank lines
+					$contents[] = '';
+					$contents[] = '';
+					
+					foreach ($verse['paragraphs'] as $paragraph) {
+						$paragraph = self::formatText($paragraph);
+						$contents[] = "<p>{$paragraph}</p>";
+					}
 				}
 			}
 		}
+		
 		
 		return $contents;
 	}

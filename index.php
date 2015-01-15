@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" ng-app="miningApp">
 <head>
 <meta charset="utf-8">
 <title>Mining Yahoo Finance</title>
@@ -24,6 +24,14 @@
 tr.head td {
 	background: #ddd
 }
+.highlight {
+	font-weight: bold;
+	color: #ff0000;
+	font-size: 14px;
+}
+.error {
+	color: red;
+}
 </style>
 </head>
 <body>
@@ -41,12 +49,9 @@ tr.head td {
 			</ul>
 			<h3 class="text-muted">Mining script</h3>
 		</div>
-
-		<!-- $info here -->
-		<table class="table table-striped">
-			<caption>Books</caption>
-			
-		</table>
+		
+		<div ui-view="tabContent"></div>
+		
 		
 		<div class="footer">
 			<p>
@@ -79,6 +84,15 @@ tr.head td {
 	<script src="./scripts/bootstrap/collapse.js"></script>
 	<script src="./scripts/bootstrap/tab.js"></script>
 	<!-- endbuild -->
+	
+	<script language='javascript' src='./scripts/angular/angular.js'></script>
+	<script language='javascript' src='./scripts/angular/angular-route.js'></script>
+	<script language='javascript' src='./scripts/angular/angular-ui-router.min.js'></script>
+	<script language='javascript' src='./scripts/angular/ui-bootstrap-tpls-0.12.0.min.js'></script>
+	<script language='javascript' src='./scripts/angular/lodash.min.js'></script>
+	
+	<script language='javascript' src='./scripts/controllers/app.js'></script>
+	<script language='javascript' src='./scripts/controllers/mining-controllers.js'></script>
 
 	<!-- build:js({app,.tmp}) scripts/main.js -->
 	<script src="./scripts/main.js"></script>
@@ -91,89 +105,12 @@ tr.head td {
 
 	var chapters = [];
 
-	function getVerses(chapter, callback) {
-		$.ajax({
-			url: './book-content.php?url=http://www.studylight.org/commentaries/jtc/' + encodeURIComponent(chapter.href),
-			success : function(res) {
-				if (chapters.length > 0) {
-					chapter = chapters[0];
-					getVerses(chapter, callback);
-					chapters.shift();
-				} else {
-					callback();
-				}
-			},
-			error: function(xhr) {
-				console.log("Can't get chapters of '"+chapter.text+"'");
-				console.log(xhr);
-			}
-		});
-	}
 	
-	function getChapters(book, callback) {
-		$.ajax({
-			url: './chapters.php?url=http://www.studylight.org/commentaries/jtc/' + encodeURIComponent(book.href),
-			success : function(res) {
-				chapters = res.chapters;
-				
-				chapter = chapters[0];
-				chapters.shift();
-				getVerses(chapter, function() {
-					// all verses get
 
-					callback();
-				});
-				
-			},
-			error: function(xhr) {
-				console.log("Can't get chapters of '"+book.text+"'");
-				console.log(xhr);
-			}
-		});
-	}
-
-	function getBook(callback) {
-		var book = {};
-		if (books.length > 0) {
-			book = books[0];
-			
-			getChapters(book, function() {
-				// get another books
-				getBook(callback);
-			});
-			books.shift();
-		} else {
-			callback();
-		}
-	}
 	
-	function crawlBooks(bookList, callback) {
-		books = bookList;
-		
-		// serialize run to get books faster
-		getBook(callback);
-		//getBook();
-		//getBook();
-	}
 	
-	$(document).ready(function() {
-		$.ajax({
-			// http://www.studylight.org/commentaries/jtc/
-			url: './books.php?url=http://www.studylight.org/commentaries/jtc/',
-			success : function(res) {
-				crawlBooks(res.newTesaments, function() {
-					// crawl old tesaments
-					crawlBooks(res.oldTesaments, function() {
-						alert("Books has been crawled successful");
-					});
-				});
-			},
-			error: function(xhr) {
-				console.log("Can't get books list");
-				console.log(xhr);
-			}
-		});
-	});
+	
+	
 	</script>
 </body>
 </html>
