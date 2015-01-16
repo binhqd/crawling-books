@@ -1,5 +1,5 @@
 var MiningCtrls = angular.module('MiningCtrls', []);
-var bookUri = 'http://www.studylight.org/commentaries/jtc/';
+var bookUri = 'http://www.studylight.org/commentaries/bbc/';
 
 MiningCtrls.controller('MiningCtrl', function($scope, $rootScope, $http) {
 	$scope.global = {
@@ -19,6 +19,7 @@ MiningCtrls.controller('MiningCtrl', function($scope, $rootScope, $http) {
 	};
 	
 	$scope.done = false;
+	$scope.isGetBooks = false;
 	
 	$http(req).success(function(res) {
 		$scope.global.oldTesaments = res.oldTesaments;
@@ -26,6 +27,7 @@ MiningCtrls.controller('MiningCtrl', function($scope, $rootScope, $http) {
 		
 		$scope.global.totalBooks = $scope.global.oldTesaments.length + $scope.global.newTesaments.length;
 		
+		$scope.isGetBooks = true;
 		$scope.crawlBooks($scope.global.newTesaments, function() {
 			// crawl old tesaments
 			$scope.crawlBooks($scope.global.oldTesaments, function() {
@@ -66,44 +68,38 @@ MiningCtrls.controller('MiningCtrl', function($scope, $rootScope, $http) {
 		}
 	}
 	
-	$scope.getVerses = function(chapter, callback) {
-		var url = './book-content.php?url=' + bookUri + encodeURIComponent(chapter.href);
-		var req = {
-			method : 'GET',
-			url : url
-		}
-		var reschapter;
-		
-		$http(req).success(function(res) {
-			if ($scope.global.chapters.length > 0) {
-				reschapter = $scope.global.chapters[0];
-				$scope.global.currentChapter = reschapter;
-				
-				$scope.getVerses(reschapter, callback);
-				$scope.global.chapters.shift();
-			} else {
-				callback();
-			}
-			
-		}).error(function() {
-			$scope.global.errors.push({
-				book	: $scope.global.currentBook,
-				chapter	: chapter,
-				scenario	: 'getVerses',
-				url		: url
-			});
-			
-			console.log("Can't get chapters of '"+chapter.text+"'");
-			console.log(xhr);
-			
-			// get another chapter
-			reschapter = $scope.global.chapters[0];
-			$scope.global.currentChapter = reschapter;
-			
-			$scope.getVerses(reschapter, callback);
+	$scope.getVerses = function(callback) {
+		// TODO: Check if chapters is empty
+		if ($scope.global.chapters.length == 0) {
+			callback();
+		} else {
+			var chapter = $scope.global.chapters[0];;
+			$scope.global.currentChapter = chapter;
 			$scope.global.chapters.shift();
 			
-		});
+			var url = './book-content.php?url=' + bookUri + encodeURIComponent(chapter.href);
+			var req = {
+				method : 'GET',
+				url : url
+			}
+			
+			$http(req).success(function(res) {
+				$scope.getVerses(callback);
+			}).error(function(xhr) {
+				$scope.global.errors.push({
+					book	: $scope.global.currentBook,
+					chapter	: chapter,
+					scenario	: 'getVerses',
+					url		: url,
+					originalUrl : bookUri + chapter.href
+				});
+				
+				console.log("Can't get chapters of '"+chapter.text+"'");
+				console.log(xhr);
+				
+				$scope.getVerses(callback);
+			});
+		}
 	}
 	
 	$scope.getChapters = function(book, callback) {
@@ -120,56 +116,24 @@ MiningCtrls.controller('MiningCtrl', function($scope, $rootScope, $http) {
 			
 			$scope.state.gettingChapter = false;
 			$scope.global.totalChapter = $scope.global.chapters.length;
-			chapter = $scope.global.chapters[0];
-			$scope.global.chapters.shift();
-			$scope.getVerses(chapter, function() {
-				// all verses get
-
-				callback();
-			});
 			
-			chapter = $scope.global.chapters[0];
-			$scope.global.chapters.shift();
-			$scope.getVerses(chapter, function() {
-				// all verses get
-
-				callback();
-			});
+			$scope.getVerses(callback);
 			
-			chapter = $scope.global.chapters[0];
-			$scope.global.chapters.shift();
-			$scope.getVerses(chapter, function() {
-				// all verses get
-
-				callback();
-			});
+			$scope.getVerses(callback);
 			
-			chapter = $scope.global.chapters[0];
-			$scope.global.chapters.shift();
-			$scope.getVerses(chapter, function() {
-				// all verses get
-
-				callback();
-			});
+			$scope.getVerses(callback);
 			
-			chapter = $scope.global.chapters[0];
-			$scope.global.chapters.shift();
+			$scope.getVerses(callback);
 			
-			$scope.global.currentChapter = chapter;
-			
-			
-			$scope.getVerses(chapter, function() {
-				// all verses get
-
-				callback();
-			});
+			$scope.getVerses(callback);
 			
 		}).error(function() {
 			$scope.global.errors.push({
 				book	: book,
 				//chapter	=> chapter,
 				scenario	: 'getChapters',
-				url		: url
+				url		: url,
+				originalUrl : bookUri + book.href
 			});
 			console.log("Can't get chapters of '"+chapter.text+"'");
 			console.log(xhr);
