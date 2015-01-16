@@ -19,4 +19,13 @@ app.config(function($routeProvider, $stateProvider) {
 			}
 		}
 	})
+	.state('miningsingle', {
+		url: '/mining/:part',
+		views: {
+			'tabContent': {
+				templateUrl: '/finance-mining/templates/mining.html',
+				controller: 'MiningCtrl'
+			}
+		}
+	})
 });

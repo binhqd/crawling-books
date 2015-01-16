@@ -16,8 +16,8 @@
 </ul>
 </div>
 <div class='clearfix'/>
-<h3>Remaining old Tesaments</h3>
-<div ng-show="global.oldTesaments.length == 0">
+<h3 ng-show="part == 'first' || part == 'both'">Remaining old Tesaments</h3>
+<div ng-show="global.oldTesaments.length == 0 && (part == 'first' || part == 'both')">
 	<span ng-hide="isGetBooks">Loading ... </span>
 	<span ng-show="isGetBooks">All books are crawled</span>
 </div>
@@ -26,8 +26,8 @@
 </div>
 
 <div class='clearfix'/>
-<h3>Remaining new Tesaments</h3>
-<div ng-show="global.newTesaments.length == 0">
+<h3 ng-show="part == 'second' || part == 'both'">Remaining new Tesaments</h3>
+<div ng-show="global.newTesaments.length == 0 && (part == 'second' || part == 'both')">
 	<span ng-hide="isGetBooks">Loading ... </span>
 	<span ng-show="isGetBooks">All books are crawled</span>
 </div>

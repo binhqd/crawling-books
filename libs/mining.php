@@ -2,6 +2,10 @@
 namespace Mining;
 error_reporting(E_ALL);
 // call library
+
+define("OWNER", 541);
+define("GROUP", 538);
+	
 include_once ("simple_html_dom.php");
 
 /**
@@ -21,9 +25,11 @@ class MiningComponent {
 	public static $fields = array(
 		
 	);
+	const PART_FIRST = 1;
+	const PART_SECOND = 2;
+	const PART_BOTH = 3;
 	
-	const OWNER = 541;
-	const GROUP = 538;
+	
 	/**
 	 * This method is used to return directory for cache
 	 * @return string
@@ -44,7 +50,7 @@ class MiningComponent {
 	 * This method is used to get all books
 	 * @param string $url
 	 */
-	public function getBooks($url) {
+	public function getBooks($url, $part = self::PART_BOTH) {
 		$html = file_get_html ( $url );
 		
 		// first table
@@ -55,48 +61,53 @@ class MiningComponent {
 			'newTesaments'	=> array(),
 		);
 		// get old testaments
-		$oldTesaments = $table->find( 'table', 0);
-		
-		foreach ( $oldTesaments->find ( 'a' ) as $link ) {
-			$text = $link->plaintext;
-			$href = $link->getAttribute('href');
+		if ($part == self::PART_FIRST || $part == self::PART_BOTH) {
+			$oldTesaments = $table->find( 'table', 0);
 			
-			if (empty($text) || empty($href)) continue;
-
-			$data['oldTesaments'][] = array(
-				'text'	=> $text,
-				'href'	=> $href
-			);
-			
-			// create folder
-			$bookFolder = dirname(__FILE__) . "/../books/{$text}";
-			if (!is_dir($bookFolder)) {
-				mkdir($bookFolder);
-				chmod($bookFolder, 0777);
-				chown($bookFolder, OWNER);
-				chgrp($bookFolder, GROUP);
+			foreach ( $oldTesaments->find ( 'a' ) as $link ) {
+				$text = $link->plaintext;
+				$href = $link->getAttribute('href');
+				
+				if (empty($text) || empty($href)) continue;
+	
+				$data['oldTesaments'][] = array(
+					'text'	=> $text,
+					'href'	=> $href
+				);
+				
+				// create folder
+				$bookFolder = dirname(__FILE__) . "/../books/{$text}";
+				if (!is_dir($bookFolder)) {
+					mkdir($bookFolder);
+					chmod($bookFolder, 0777);
+					chown($bookFolder, OWNER);
+					chgrp($bookFolder, GROUP);
+				}
 			}
 		}
 		
-		$newTesaments = $table->find( 'table', 1);
-		foreach ( $newTesaments->find ( 'a' ) as $link ) {
-			$text = $link->plaintext;
-			$href = $link->getAttribute('href');
-			
-			if (empty($text) || empty($href)) continue;
-			
-			$data['newTesaments'][] = array(
-				'text'	=> $text,
-				'href'	=> $href
-			);
-
-			// create folder
-			$bookFolder = dirname(__FILE__) . "/../books/{$text}";
-			if (!is_dir($bookFolder)) {
-				mkdir($bookFolder);
-				chmod($bookFolder, 0777);
-				chown($bookFolder, OWNER);
-				chgrp($bookFolder, GROUP);
+		if ($part == self::PART_SECOND || $part == self::PART_BOTH) {
+			$newTesaments = $table->find( 'table', 1);
+			foreach ( $newTesaments->find ( 'a' ) as $link ) {
+				$text = $link->plaintext;
+				$href = $link->getAttribute('href');
+				
+				if (empty($text) || empty($href)) continue;
+				
+				$data['newTesaments'][] = array(
+					'text'	=> $text,
+					'href'	=> $href
+				);
+	
+				// create folder
+				$bookFolder = dirname(__FILE__) . "/../books/{$text}";
+				
+				if (!is_dir($bookFolder)) {
+					mkdir($bookFolder);
+					chmod($bookFolder, 0777);
+					chown($bookFolder, OWNER);
+					chgrp($bookFolder, GROUP);
+				}
 			}
 		}
 		

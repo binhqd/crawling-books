@@ -2,7 +2,7 @@
 <html class="no-js" ng-app="miningApp">
 <head>
 <meta charset="utf-8">
-<title>Mining Books</title>
+<title>Mining Yahoo Finance</title>
 <meta name="description" content="">
 <meta name="viewport" content="width=device-width">
 <link rel="shortcut icon" href="/favicon.ico">
