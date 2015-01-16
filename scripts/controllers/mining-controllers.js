@@ -1,5 +1,5 @@
 var MiningCtrls = angular.module('MiningCtrls', []);
-var bookUri = 'http://www.studylight.org/commentaries/bbc/';
+var bookUri = 'http://www.studylight.org/commentaries/jfu/';
 
 MiningCtrls.controller('MiningCtrl', function($scope, $rootScope, $http, $stateParams) {
 	$scope.part = '';

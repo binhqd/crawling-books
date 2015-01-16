@@ -14,7 +14,7 @@ app.config(function($routeProvider, $stateProvider) {
 		url: '/mining',
 		views: {
 			'tabContent': {
-				templateUrl: '/finance-mining/templates/mining.html',
+				templateUrl: '/templates/mining.html',
 				controller: 'MiningCtrl'
 			}
 		}
@@ -23,7 +23,7 @@ app.config(function($routeProvider, $stateProvider) {
 		url: '/mining/:part',
 		views: {
 			'tabContent': {
-				templateUrl: '/finance-mining/templates/mining.html',
+				templateUrl: '/templates/mining.html',
 				controller: 'MiningCtrl'
 			}
 		}

@@ -1,6 +1,6 @@
 <?php
-use Mining\MiningComponent;
 error_reporting(E_ALL);
+
 $bookUrl = 'http://localhost:8080/book-mining/data/books.html';
 if (isset($_GET['url']) && !empty($_GET['url'])) {
 	$bookUrl = $_GET['url'];
@@ -23,14 +23,14 @@ require("libs/functions.php");
 include ('libs/mining.php');
 $script = new \Mining\MiningComponent ();
 
-$part = MiningComponent::PART_BOTH;
+$part = \Mining\MiningComponent::PART_BOTH;
 if (isset($_GET['part'])) {
 	$part = strtolower($_GET['part']);
 	
 	$restrict = array(
-		"first"	=> MiningComponent::PART_FIRST,
-		"second"	=> MiningComponent::PART_SECOND,
-		"both"	=> MiningComponent::PART_BOTH,
+		"first"	=> \Mining\MiningComponent::PART_FIRST,
+		"second"	=> \Mining\MiningComponent::PART_SECOND,
+		"both"	=> \Mining\MiningComponent::PART_BOTH,
 	);
 	
 	$part = $restrict[$part];

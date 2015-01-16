@@ -7,13 +7,13 @@ define("OWNER", 541);
 define("GROUP", 538);
 	
 include_once ("simple_html_dom.php");
-
 /**
  * 
  * @author Binhqd
  * @email binhqd@gmail.com
  * 
  */
+
 class MiningComponent {
 	const CALLS = 1;
 	const PUTS = 2;
@@ -171,7 +171,10 @@ class MiningComponent {
 	 * @param string $url
 	 */
 	public function getBookContent($url) {
-		$html = file_get_html ( $url );
+		$content = file_get_contents($url);
+		$content = preg_replace('/[a-zA-Z0-9\/\r\n+]{128,}/', "", $content);
+		
+		$html = str_get_html ( $content );
 		
 		// Read book info
 		$chapterData = $html->find('.crumbtrail b', 0);
@@ -179,27 +182,47 @@ class MiningComponent {
 		
 		$bookData = $html->find('.crumbtrail a', 3);
 		$bookName = $bookData->plaintext;
-		
 		// first table
 		$verseContainer = $html->find ( '.content_main .general .large');
 		
 		$verses = array();
-		
-		foreach ( $verseContainer as $verseItem ) {
-			$text = trim($verseItem->plaintext);
-			//$href = $link->getAttribute('href');
-			
-			$paragraphs = array();
-			foreach ( $verseItem->parent()->find('p') as $paragraph ) {
-				$paragraphs[] = $paragraph->plaintext;
+		if (is_array($verseContainer) && count($verseContainer) > 0) {
+			foreach ( $verseContainer as $verseItem ) {
+				$text = trim($verseItem->plaintext);
+				//$href = $link->getAttribute('href');
+				
+				$paragraphs = array();
+				foreach ( $verseItem->parent()->find('p') as $paragraph ) {
+					$paragraphs[] = $paragraph->plaintext;
+				}
+				$verses[] = array(
+					'text'	=> $text,
+					'paragraphs'	=> $paragraphs
+				);
 			}
-			$verses[] = array(
-				'text'	=> $text,
-				'paragraphs'	=> $paragraphs
-			);
-			
-			
+		} else {
+			$contentContainer = $html->find ( '.content_main .general div', 2);
+			if (!!$contentContainer) {
+				$text = "Introduction";
+				//$href = $link->getAttribute('href');
+				
+				$paragraphs = array();
+				foreach ( $contentContainer->find('p') as $paragraph ) {
+					$p = trim($paragraph->plaintext);
+					
+					if (!empty($p)) {
+						$paragraphs[] = $p;
+					}
+				}
+				$verses[] = array(
+					'text'			=> $text,
+					'paragraphs'	=> $paragraphs
+				);
+			} else {
+				header( "HTTP/1.1 404 Not Found", true );
+			}
 		}
+		
 		$output = array(
 			"book"	=> $bookName,
 			"chapter"	=> $chapterName,
@@ -272,8 +295,6 @@ class MiningComponent {
 				foreach ($verses as $verse) {
 					$verseNumber = str_replace("Verse ", "", $verse['text']);
 					$verseNumber = str_replace("Verses ", "", $verseNumber);
-					//<h2 pb_toc="index">1:1</h2>
-	// <p><pb_sync type=verse value="Genesis 1:1" display="now" /><b>Gen 1:1</b></p>
 					
 					$contents[] = "<h2 pb_toc=\"index\">{$chapterNumber}:{$verseNumber}</h2>";
 					$contents[] = "<p><pb_sync type='verse' value=\"{$bookName} {$chapterNumber}:{$verseNumber}\" display=\"now\" /><b>".substr($bookName, 0, 3)." {$chapterNumber}:{$verseNumber}</b></p>";
@@ -301,8 +322,6 @@ class MiningComponent {
 				foreach ($verses as $verse) {
 					$verseNumber = str_replace("Verse ", "", $verse['text']);
 					$verseNumber = str_replace("Verses ", "", $verseNumber);
-					//<h2 pb_toc="index">1:1</h2>
-	// <p><pb_sync type=verse value="Genesis 1:1" display="now" /><b>Gen 1:1</b></p>
 					
 					$contents[] = "<h2 pb_toc=\"index\">{$chapterNumber}:{$verseNumber}</h2>";
 					$contents[] = "<p><pb_sync type='verse' value=\"{$bookName} {$chapterNumber}:{$verseNumber}\" display=\"now\" /><b>".substr($bookName, 0, 3)." {$chapterNumber}:{$verseNumber}</b></p>";
